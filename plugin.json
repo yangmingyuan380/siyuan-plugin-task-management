@@ -1,9 +1,9 @@
 {
-  "name": "plugin-sample-vite-svelte",
-  "author": "frostime",
-  "url": "https://github.com/siyuan-note/plugin-sample-vite-svelte",
-  "version": "0.3.6",
-  "minAppVersion": "3.0.12",
+  "name": "siyuan-plugin-task-management",
+  "author": "Rick Yang",
+  "url": "https://github.com/yangmingyuan380/siyuan-plugin-task-management",
+  "version": "1.0.0",
+  "minAppVersion": "2.8.8",
   "backends": [
     "windows",
     "linux",
@@ -21,25 +21,34 @@
     "desktop-window"
   ],
   "displayName": {
-    "en_US": "Plugin sample with vite and svelte",
-    "zh_CN": "插件样例 vite + svelte 版"
+    "default": "Task Management",
+    "zh_CN": "任务管理"
   },
   "description": {
-    "en_US": "SiYuan plugin sample with vite and svelte",
-    "zh_CN": "使用 vite 和 svelte 开发的思源插件样例"
+    "default": "Integrate with JIRA and Lark/Feishu to sync project tasks with SiYuan database",
+    "zh_CN": "与JIRA和飞书集成，将项目任务同步到思源数据库"
   },
   "readme": {
     "en_US": "README.md",
     "zh_CN": "README_zh_CN.md"
   },
+  "i18n": [
+    "en_US",
+    "zh_CN"
+  ],
   "funding": {
     "custom": [
-      ""
+      "https://github.com/yangmingyuan380"
     ]
   },
   "keywords": [
-    "plugin",
-    "sample",
-    "插件样例"
+    "JIRA",
+    "Lark",
+    "Feishu",
+    "task",
+    "project",
+    "database",
+    "integration",
+    "management"
   ]
 }

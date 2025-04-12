@@ -16,5 +16,28 @@
         "makesure": "Before using this template, please read the <a href=\"https://github.com/siyuan-note/plugin-sample\">offical sample</a>, make sure that you've known about the pipeline for plugin developing."
     },
     "hintTitle":"About",
-    "hintDesc":"<a href='https://github.com/siyuan-note/plugin-sample-vite-svelte'>plugin-sample-vite-svelte</a><br>@frostime<br>@88250<br>@zxkmm"
+    "hintDesc":"<a href='https://github.com/siyuan-note/plugin-sample-vite-svelte'>🔗 plugin-sample-vite-svelte</a><br>💻 @frostime<br>💻 @88250<br>💻 @zxkmm",
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "settingItem": {
+        "name": "Name",
+        "value": "Value"
+    },
+    "hintMsg": {
+        "inputValueHint": "Value required"
+    },
+    "jiraFetch": "Fetch JIRA Data",
+    "jiraSettings": "JIRA Integration Settings",
+    "jiraServerUrl": "JIRA Server URL",
+    "jiraServerUrlTip": "Example: https://your-domain.atlassian.net",
+    "jiraApiToken": "JIRA API Token",
+    "jiraApiTokenTip": "Token for accessing JIRA API",
+    "jiraConfigMissing": "JIRA configuration is not set, please configure it in plugin settings",
+    "jiraFetching": "Fetching {issueKey} data...",
+    "jiraUpdateSuccess": "Updated {issueKey} data",
+    "jiraUpdateFailed": "Failed to fetch {issueKey} data",
+    "jiraCellUseCommandTip": "Please use this command inside a database cell",
+    "jiraNoValidId": "No valid JIRA task ID found",
+    "saveSuccess": "Settings saved"
 }

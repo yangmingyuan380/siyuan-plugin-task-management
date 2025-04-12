@@ -10,7 +10,7 @@
 import fs from 'fs';
 import { log, error, getSiYuanDir, chooseTarget, getThisPluginName, makeSymbolicLink } from './utils.js';
 
-let targetDir = '';
+let targetDir = '/Users/rick2/Documents/softdoc/siyuanWokerSpace/jdyLog/data/plugins';
 
 /**
  * 1. Get the parent directory to install the plugin

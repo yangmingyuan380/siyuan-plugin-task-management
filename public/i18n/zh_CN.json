@@ -16,5 +16,28 @@
         "makesure": "使用这个模板之前，请阅读<a href=\"https://github.com/siyuan-note/plugin-sample\">官方教程</a>, 确保自己已经理解了插件的基本开发流程。"
     },
     "hintTitle": "关于",
-    "hintDesc": "<a href='https://github.com/siyuan-note/plugin-sample-vite-svelte'>🔗 plugin-sample-vite-svelte</a><br>💻 @frostime<br>💻 @88250<br>💻 @zxkmm"
+    "hintDesc": "<a href='https://github.com/siyuan-note/plugin-sample-vite-svelte'>🔗 plugin-sample-vite-svelte</a><br>💻 @frostime<br>💻 @88250<br>💻 @zxkmm",
+    "jiraFetch": "获取JIRA数据",
+    "jiraSettings": "JIRA 集成设置",
+    "jiraServerUrl": "JIRA 服务器地址",
+    "jiraServerUrlTip": "例如: https://your-domain.atlassian.net",
+    "jiraApiToken": "JIRA API Token",
+    "jiraApiTokenTip": "用于访问JIRA API的令牌",
+    "jiraConfigMissing": "JIRA配置未设置，请先在插件设置中配置",
+    "jiraFetching": "正在获取 {issueKey} 数据...",
+    "jiraUpdateSuccess": "已更新 {issueKey} 数据",
+    "jiraUpdateFailed": "获取 {issueKey} 数据失败",
+    "jiraCellUseCommandTip": "请在数据库单元格内使用该命令",
+    "jiraNoValidId": "未找到有效的JIRA任务ID",
+    "addItem": "新增条目",
+    "editItem": "编辑条目",
+    "deleteItem": "移除条目",
+    "settingItem": {
+        "name": "名称",
+        "value": "取值"
+    },
+    "hintMsg": {
+        "inputValueHint": "必须填写内容"
+    },
+    "saveSuccess": "设置已保存"
 }
