@@ -13,6 +13,7 @@ A powerful task management plugin for SiYuan Note that integrates with JIRA and 
 - **Flexible Field Mapping**: Customize how external fields are mapped to SiYuan database columns
 - **Custom Color Coding**: Assign colors to status and category options for better visualization
 - **JavaScript Expressions**: Use custom JavaScript code to transform and extract data
+- **Time Tracking**: Record working hours directly in documents and sync to JIRA/Lark and daily notes
 
 ## Installation
 
@@ -153,3 +154,27 @@ If you encounter issues:
 ## License
 
 MIT © [Rick Yang](https://github.com/yangmingyuan380)
+
+## Time Tracking Feature
+
+This plugin includes a time tracking panel that allows you to:
+
+1. **Record Time**: Enter time spent directly in task details
+2. **Sync to JIRA/Lark**: Automatically post time entries to external systems
+3. **Save to Daily Notes**: Optionally record time entries in SiYuan daily notes
+
+### How to Use
+
+1. Enable "Time Tracking" in settings (enabled by default)
+2. Open a document containing a task database
+3. Open the document context menu (right-click or three-dot menu)
+4. The system will automatically recognize task IDs and display the time tracking panel
+5. Fill in time information and submit
+6. Time entries will be synchronized to JIRA or Lark
+7. If "Sync to Daily Notes" is enabled, entries will also be added to the current day's note
+
+### Notes
+
+- JIRA time format uses "1h 30m" (1 hour 30 minutes)
+- Lark time records use hours as units and will be automatically converted
+- Daily note sync depends on your SiYuan daily notes settings

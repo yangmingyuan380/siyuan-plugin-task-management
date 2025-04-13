@@ -52,6 +52,14 @@
     // 组件加载时初始化配置
     onMount(async () => {
         await loadConfig();
+
+        // 确保新增配置项有默认值
+        if (config.enableTimeTracking === undefined) {
+            config.enableTimeTracking = true;
+        }
+        if (config.syncToDailyNote === undefined) {
+            config.syncToDailyNote = false;
+        }
     });
 
     // 加载配置数据
@@ -409,6 +417,56 @@
                     </div>
 
                     <div class="config__item">
+                        <label class="fn__flex">
+                            <div class="fn__flex-1">
+                                工时管理API地址
+                                <div class="b3-label__text">
+                                    飞书工时管理的API接口地址
+                                </div>
+                            </div>
+                            <span class="fn__space"></span>
+                            <input
+                                    class="b3-text-field fn__flex-center fn__size200"
+                                    bind:value={config.larkConfig.larkWorkLogUrl}
+                                    placeholder="https://feishu-api.example.com"
+                            />
+                        </label>
+                    </div>
+
+                    <div class="config__item">
+                        <label class="fn__flex">
+                            <div class="fn__flex-1">
+                                工时管理认证Token
+                                <div class="b3-label__text">
+                                    飞书工时管理系统的认证Token
+                                </div>
+                            </div>
+                            <span class="fn__space"></span>
+                            <input
+                                    class="b3-text-field fn__flex-center fn__size200"
+                                    bind:value={config.larkConfig.authToken}
+                                    type="password"
+                            />
+                        </label>
+                    </div>
+
+                    <div class="config__item">
+                        <label class="fn__flex">
+                            <div class="fn__flex-1">
+                                项目标识(Project Key)
+                                <div class="b3-label__text">
+                                    飞书工时管理系统的项目标识，用于API请求头
+                                </div>
+                            </div>
+                            <span class="fn__space"></span>
+                            <input
+                                    class="b3-text-field fn__flex-center fn__size200"
+                                    bind:value={config.larkConfig.projectKey}
+                            />
+                        </label>
+                    </div>
+
+                    <div class="config__item">
                         <div class="fn__flex">
                             <div class="fn__flex-1">
                                 字段映射
@@ -451,6 +509,40 @@
                                 <option value="warn">警告</option>
                                 <option value="error">错误</option>
                             </select>
+                        </label>
+                    </div>
+
+                    <div class="config__item">
+                        <label class="fn__flex">
+                            <div class="fn__flex-1">
+                                启用工时记录
+                                <div class="b3-label__text">
+                                    在任务详情页显示工时记录面板
+                                </div>
+                            </div>
+                            <span class="fn__space"></span>
+                            <input
+                                    class="b3-switch fn__flex-center"
+                                    type="checkbox"
+                                    bind:checked={config.enableTimeTracking}
+                            />
+                        </label>
+                    </div>
+
+                    <div class="config__item">
+                        <label class="fn__flex">
+                            <div class="fn__flex-1">
+                                同步到日记
+                                <div class="b3-label__text">
+                                    将工时记录同步到思源笔记日记中
+                                </div>
+                            </div>
+                            <span class="fn__space"></span>
+                            <input
+                                    class="b3-switch fn__flex-center"
+                                    type="checkbox"
+                                    bind:checked={config.syncToDailyNote}
+                            />
                         </label>
                     </div>
                 {/if}
@@ -673,6 +765,13 @@
         opacity: 0.8;
     }
 
+    /* 设置对话框固定高度和滚动 */
+    .b3-dialog__body {
+        height: 500px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
     /* 表单元素美化 */
     .b3-text-field {
         transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
@@ -693,12 +792,16 @@
     /* 选项卡样式 */
     .tab-container {
         margin-bottom: var(--padding-md);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
     .tab-header {
         display: flex;
         border-bottom: 1px solid var(--border-color);
         margin-bottom: var(--padding-md);
+        flex-shrink: 0;
     }
 
     .tab-button {
@@ -732,7 +835,15 @@
     }
 
     .tab-content {
+        flex-grow: 1;
+        overflow-y: auto;
         padding: var(--padding-sm) 0;
+    }
+
+    /* 确保保存按钮在底部固定 */
+    .config__item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
     }
 
     /* 字段映射编辑器 */

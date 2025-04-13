@@ -1,5 +1,5 @@
 import { Plugin, showMessage } from 'siyuan';
-import { Config, JiraConfig, LarkConfig, LarkTokenCache } from '../types';
+import { Config, JiraConfig, LarkConfig, LarkTokenCache, WorkItemIdCache } from '../types';
 import { Logger } from '../utils';
 import { ConfFileConstants } from '../consts';
 
@@ -14,6 +14,9 @@ export class ConfigManager {
     private optionColors: Record<string, Record<string, string>> = {};
     private fixedOptionColors: Record<string, Record<string, string>> = {};
     private larkTokenCache: LarkTokenCache | null = null;
+    private workItemCache: Record<string, WorkItemIdCache> = {}; // 工作项ID缓存
+    private workItemCacheKeys: string[] = []; // 缓存的key列表，用于LRU淘汰
+    private readonly MAX_CACHE_SIZE = 100; // 最大缓存数量
 
     constructor(plugin: Plugin, logger: Logger) {
         this.plugin = plugin;
@@ -53,6 +56,9 @@ export class ConfigManager {
                 userKey: '',
                 larkBaseUrl: '',
                 spaceId: '',
+                larkWorkLogUrl: '',
+                authToken: '',
+                projectKey: '',
                 fieldMappings: {
                     '状态': 'status.name',
                     '优先级': 'fields.filter(it=>it.field_key==="priority").field_value.label',
@@ -73,6 +79,8 @@ export class ConfigManager {
                 },
             },
             logLevel: 'info',
+            enableTimeTracking: true,
+            syncToDailyNote: false,
         };
     }
 
@@ -84,6 +92,7 @@ export class ConfigManager {
         await this.loadOptionColors();
         await this.loadFixedOptionColors();
         await this.loadLarkTokenCache();
+        await this.loadWorkItemCache(); // 加载工作项缓存
     }
 
     /**
@@ -140,6 +149,52 @@ export class ConfigManager {
     }
 
     /**
+     * 加载工作项缓存
+     */
+    public async loadWorkItemCache(): Promise<void> {
+        const workItemCache = await this.plugin.loadData('workItemCache');
+        const workItemCacheKeys = await this.plugin.loadData('workItemCacheKeys');
+        
+        if (workItemCache && typeof workItemCache === 'object') {
+            // 清理过期的缓存项
+            const now = Date.now();
+            const validCache: Record<string, WorkItemIdCache> = {};
+            const validKeys: string[] = [];
+            
+            // 遍历缓存，只保留未过期的项
+            Object.entries(workItemCache).forEach(([key, cache]) => {
+                if (cache && typeof cache === 'object' && 'expireTime' in cache && (cache as any).expireTime > now) {
+                    validCache[key] = cache as WorkItemIdCache;
+                    validKeys.push(key);
+                }
+            });
+            
+            this.workItemCache = validCache;
+            
+            // 如果有缓存键序列，使用它，否则从有效缓存中重建
+            if (Array.isArray(workItemCacheKeys)) {
+                // 只保留有效的键
+                this.workItemCacheKeys = workItemCacheKeys.filter(key => validCache[key]);
+                
+                // 添加可能遗漏的键
+                validKeys.forEach(key => {
+                    if (!this.workItemCacheKeys.includes(key)) {
+                        this.workItemCacheKeys.push(key);
+                    }
+                });
+            } else {
+                this.workItemCacheKeys = validKeys;
+            }
+            
+            this.logger.debug(`加载工作项缓存成功，有效项: ${this.workItemCacheKeys.length}`);
+        } else {
+            this.logger.debug('未找到工作项缓存或格式不正确');
+            this.workItemCache = {};
+            this.workItemCacheKeys = [];
+        }
+    }
+
+    /**
      * 保存主配置
      */
     public async saveConfig(): Promise<void> {
@@ -169,6 +224,15 @@ export class ConfigManager {
     public async saveLarkTokenCache(): Promise<void> {
         await this.plugin.saveData(ConfFileConstants.LARK_TOKEN_CACHE, this.larkTokenCache);
         this.logger.debug('保存飞书Token缓存成功');
+    }
+
+    /**
+     * 保存工作项缓存
+     */
+    public async saveWorkItemCache(): Promise<void> {
+        await this.plugin.saveData('workItemCache', this.workItemCache);
+        await this.plugin.saveData('workItemCacheKeys', this.workItemCacheKeys);
+        this.logger.debug(`保存工作项缓存成功，共 ${this.workItemCacheKeys.length} 项`);
     }
 
     /**
@@ -280,5 +344,112 @@ export class ConfigManager {
     public async setLarkTokenCache(cache: LarkTokenCache): Promise<void> {
         this.larkTokenCache = cache;
         await this.saveLarkTokenCache();
+    }
+
+    /**
+     * 获取工作项缓存
+     * @param issueKey 工作项ID
+     * @returns 工作项缓存信息
+     */
+    public getWorkItemCache(issueKey: string): WorkItemIdCache | null {
+        const cache = this.workItemCache[issueKey];
+        if (cache && cache.expireTime > Date.now()) {
+            // 更新最近使用状态，将访问的key移到数组末尾表示最近使用
+            this.updateCacheUsage(issueKey);
+            return cache;
+        }
+        
+        // 如果缓存过期，则删除
+        if (cache) {
+            this.logger.debug(`缓存已过期，清除: ${issueKey}`);
+            delete this.workItemCache[issueKey];
+            const index = this.workItemCacheKeys.indexOf(issueKey);
+            if (index !== -1) {
+                this.workItemCacheKeys.splice(index, 1);
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 更新缓存使用状态（LRU策略）
+     * @param issueKey 工作项ID
+     */
+    private updateCacheUsage(issueKey: string): void {
+        // 先从列表中移除key
+        const index = this.workItemCacheKeys.indexOf(issueKey);
+        if (index !== -1) {
+            this.workItemCacheKeys.splice(index, 1);
+        }
+        
+        // 将key添加到列表末尾，表示最近使用
+        this.workItemCacheKeys.push(issueKey);
+    }
+    
+    /**
+     * 设置工作项缓存
+     * @param issueKey 工作项ID
+     * @param workItemTypeId 工作项类型ID
+     * @param workItemEntityId 工作项实体ID
+     * @param ttl 缓存有效期（毫秒），默认24小时
+     */
+    public async setWorkItemCache(
+        issueKey: string,
+        workItemTypeId: string,
+        workItemEntityId: string,
+        ttl: number = 24 * 60 * 60 * 1000
+    ): Promise<void> {
+        // 检查是否需要淘汰缓存
+        if (!(issueKey in this.workItemCache) && this.workItemCacheKeys.length >= this.MAX_CACHE_SIZE) {
+            this.evictCache();
+        }
+        
+        // 设置缓存
+        this.workItemCache[issueKey] = {
+            issueKey,
+            workItemTypeId,
+            workItemEntityId,
+            expireTime: Date.now() + ttl
+        };
+        
+        // 更新使用状态
+        this.updateCacheUsage(issueKey);
+        
+        this.logger.debug(`缓存工作项信息: ${issueKey}, 类型ID: ${workItemTypeId}, 当前缓存项: ${this.workItemCacheKeys.length}`);
+        
+        // 持久化缓存数据
+        await this.saveWorkItemCache();
+    }
+    
+    /**
+     * 淘汰最久未使用的缓存（LRU策略）
+     */
+    private evictCache(): void {
+        if (this.workItemCacheKeys.length === 0) return;
+        
+        // 获取最久未使用的key（列表最前面的元素）
+        const oldestKey = this.workItemCacheKeys.shift();
+        if (oldestKey) {
+            this.logger.debug(`缓存已满，淘汰最久未使用项: ${oldestKey}`);
+            delete this.workItemCache[oldestKey];
+        }
+    }
+    
+    /**
+     * 清除工作项缓存
+     * @param issueKey 可选，指定要清除的工作项ID，如果不指定则清除所有
+     */
+    public clearWorkItemCache(issueKey?: string): void {
+        if (issueKey) {
+            delete this.workItemCache[issueKey];
+            const index = this.workItemCacheKeys.indexOf(issueKey);
+            if (index !== -1) {
+                this.workItemCacheKeys.splice(index, 1);
+            }
+        } else {
+            this.workItemCache = {};
+            this.workItemCacheKeys = [];
+        }
     }
 } 
