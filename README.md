@@ -12,7 +12,6 @@ A powerful task management plugin for SiYuan Note that integrates with JIRA and 
 - **Lark/Feishu Integration**: Connect with Lark/Feishu tasks and display them in SiYuan
 - **Flexible Field Mapping**: Customize how external fields are mapped to SiYuan database columns
 - **Custom Color Coding**: Assign colors to status and category options for better visualization
-- **Automatic Updates**: Keep your task information up-to-date with scheduled synchronization
 - **JavaScript Expressions**: Use custom JavaScript code to transform and extract data
 
 ## Installation
@@ -38,9 +37,9 @@ A powerful task management plugin for SiYuan Note that integrates with JIRA and 
 1. Go to plugin settings
 2. Select the "Lark Configuration" tab
 3. Enter your Lark API base URL (default: https://open.feishu.cn)
-4. Enter your Plugin ID (from Lark developer console)
+4. You need to create a custom plugin in Lark (this project uses the test channel to get tokens, your Lark workspace doesn't need to install this plugin), enter your Plugin ID (from Lark developer console)
 5. Enter your Plugin Secret
-6. Add your User Key and Space ID
+6. Add your User Key (double-click on your avatar in Lark project to get it) and Space ID
 7. Configure field mappings by clicking "Edit Mappings"
 
 ### Field Mappings
@@ -49,7 +48,7 @@ Field mappings allow you to specify how external service fields are mapped to yo
 
 - **SiYuan Column Name**: The column name in your SiYuan database
 - **External Field Path**: The path to access the field in the external service API response
-- **Data Type**: Text, Date, or Select (with color options)
+- **Data Type**: Text, Date, Select (with color options), or URL
 
 #### Mapping Path Types
 
@@ -97,7 +96,7 @@ You can use JavaScript expressions for complex data transformations by prefixing
 
 3. **Date formatting**:
    ```
-   js: new Date(data.fields.updated).toLocaleDateString()
+   js: new Date(data.fields.updated).toLocaleDateString('en-US')
    ```
 
 4. **Calculations**:
@@ -121,8 +120,18 @@ You can use JavaScript expressions for complex data transformations by prefixing
 1. Create a database in SiYuan
 2. Configure the plugin with your JIRA or Lark/Feishu credentials
 3. Set up field mappings to match your database columns
-4. Use the plugin to fetch and sync tasks
+4. Use the plugin to fetch and sync tasks:
+   - Add a row in the database and create an ID column (text type)
+   - Enter JIRA or Feishu work item ID/number in the ID column
+   - When ID input is complete and **loses focus**, the plugin will automatically fetch task information and populate the corresponding mapped fields
 5. Your external tasks will appear in the SiYuan database with all mapped fields
+
+## How It Works
+
+This plugin monitors changes to the ID field in SiYuan database to trigger task synchronization:
+1. When a task ID is entered in the database ID field and loses focus, the plugin detects this change
+2. The plugin automatically queries the corresponding task information based on the configured service type (JIRA or Feishu)
+3. The queried task information is populated into other columns in the database according to field mapping rules
 
 ## Known Issues
 
@@ -144,4 +153,3 @@ If you encounter issues:
 ## License
 
 MIT © [Rick Yang](https://github.com/yangmingyuan380)
-

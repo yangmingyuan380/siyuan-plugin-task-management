@@ -21,6 +21,16 @@ export class PathHelper {
         if (path.startsWith('js:')) {
             return this.evaluateJsExpression(obj, path.substring(3));
         }
+        const parts = path.split('.');
+        let result = obj;
+
+        for (const part of parts) {
+            if (result === null || result === undefined) {
+                return undefined;
+            }
+            result = result[part];
+        }
+        return result;
     }
 
     /**
@@ -33,17 +43,17 @@ export class PathHelper {
         try {
             // 移除表达式前后的空白
             expression = expression.trim();
-            
+
             // 添加安全检查，防止执行危险代码
-            if (expression.includes('window') || 
-                expression.includes('document') || 
-                expression.includes('eval') || 
+            if (expression.includes('window') ||
+                expression.includes('document') ||
+                expression.includes('eval') ||
                 expression.includes('Function') ||
                 expression.includes('require')) {
                 this.logger.error('JavaScript表达式包含不安全的调用:', expression);
                 return undefined;
             }
-            
+
             // 使用Function构造函数创建一个新的函数
             // 只允许访问传入的data对象
             const func = new Function('data', `
@@ -54,7 +64,7 @@ export class PathHelper {
                     return undefined;
                 }
             `);
-            
+
             // 执行函数
             return func(data);
         } catch (error) {

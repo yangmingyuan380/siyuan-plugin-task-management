@@ -1,6 +1,7 @@
 import { fetchPost } from 'siyuan';
 import { Logger, PathHelper } from '../utils';
 import { ConfigManager } from '../conf';
+import { FieldType } from '../types';
 
 export class DatabaseService {
     private logger: Logger;
@@ -170,18 +171,21 @@ export class DatabaseService {
             let operation;
 
             // 根据配置的字段类型创建不同类型的操作
-            const fieldType = fieldTypes[fieldName] || 'text';
+            const fieldType = fieldTypes[fieldName] || FieldType.TEXT;
 
-            if (fieldType === 'date') {
+            if (fieldType === FieldType.DATE) {
                 // 日期类型字段
                 operation = this.createDateOperation(fieldName, value, cellID, keyID, rowId, avId);
-            } else if (fieldType === 'select') {
+            } else if (fieldType === FieldType.SELECT) {
                 // 新增 单选类型
                 const optionOperation = this.createOptionOperation(fieldName, value, keyID, avId);
                 doOperations.push(optionOperation);
                 
                 // 选择 单选类型
                 operation = this.createSelectOperation(fieldName, value, cellID, keyID, rowId, avId);
+            } else if (fieldType === FieldType.URL) {
+                // 链接类型字段
+                operation = this.createLinkOperation(fieldName, value, cellID, keyID, rowId, avId);
             } else {
                 // 普通文本字段
                 operation = this.createTextOperation(fieldName, value, cellID, keyID, rowId, avId);
@@ -385,7 +389,7 @@ export class DatabaseService {
             keyID: keyID,
             rowID: rowId,
             data: {
-                type: 'date',
+                type: FieldType.DATE,
                 date: {
                     content: dateValue,
                     isNotEmpty: true,
@@ -447,7 +451,7 @@ export class DatabaseService {
             rowID: rowId,
             avID: avId,
             data: {
-                type: 'select',
+                type: FieldType.SELECT,
                 id: cellID,
                 mSelect: [
                     {
@@ -479,7 +483,7 @@ export class DatabaseService {
             keyID: keyID,
             rowID: rowId,
             data: {
-                type: 'text',
+                type: FieldType.TEXT,
                 text: {
                     content: String(value),
                 },
@@ -489,4 +493,33 @@ export class DatabaseService {
         this.logger.debug(`添加文本操作: ${ fieldName } = ${ value }`, operation);
         return operation;
     }
-} 
+
+    /**
+     * 创建链接类型的操作   
+     * @param fieldName 字段名称
+     * @param value 字段值
+     * @param cellID 单元格ID
+     * @param keyID 列ID
+     * @param rowId 行ID
+     * @param avId 数据库ID
+     * @returns 链接操作对象
+     */
+    private createLinkOperation(fieldName: string, value: any, cellID: string, keyID: string, rowId: string, avId: string): any {
+        const operation = {
+            action: 'updateAttrViewCell',
+            id: cellID,
+            avID: avId,
+            keyID: keyID,
+            rowID: rowId,
+            data: {
+                type: FieldType.URL,
+                url: {
+                    content: String(value),
+                },
+                id: cellID,
+            },
+        };
+        this.logger.debug(`添加链接操作: ${ fieldName } = ${ value }`, operation);
+        return operation;
+    }
+}

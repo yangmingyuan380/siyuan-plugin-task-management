@@ -3,6 +3,7 @@
     import { showMessage } from 'siyuan';
     import { ConfigManager } from '../conf';
     import type { Config } from '../types';
+    import { FieldType } from '../types';
 
     // 组件属性
     export let plugin: any;
@@ -94,7 +95,7 @@
         if (!targetConfig.fieldTypes) targetConfig.fieldTypes = {};
 
         targetConfig.fieldMappings[newKey] = '';
-        targetConfig.fieldTypes[newKey] = 'text';
+        targetConfig.fieldTypes[newKey] = FieldType.TEXT;
         updateMappingKeys();
     }
 
@@ -218,7 +219,7 @@
     // 辅助函数：获取映射字段类型
     function getConfigType(key: string) {
         const targetConfig = currentConfigType === 'jira' ? config.jiraConfig : config.larkConfig;
-        return targetConfig && targetConfig.fieldTypes ? targetConfig.fieldTypes[key] : 'text';
+        return targetConfig && targetConfig.fieldTypes ? targetConfig.fieldTypes[key] : FieldType.TEXT;
     }
 
     // 辅助函数：设置映射字段类型
@@ -504,12 +505,13 @@
                                         value={getConfigType(key)}
                                         on:change={(e) => setConfigType(key, e.currentTarget.value)}
                                     >
-                                        <option value="text">文本</option>
-                                        <option value="date">日期</option>
-                                        <option value="select">单选</option>
+                                        <option value={FieldType.TEXT}>文本</option>
+                                        <option value={FieldType.DATE}>日期</option>
+                                        <option value={FieldType.SELECT}>单选</option>
+                                        <option value={FieldType.URL}>链接</option>
                                     </select>
                                     <div class="field-action-group">
-                                        {#if getConfigType(key) === 'select'}
+                                        {#if getConfigType(key) === FieldType.SELECT}
                                             <button 
                                                 class="b3-button b3-button--outline field-color-button" 
                                                 title="配置选项颜色"
@@ -527,7 +529,7 @@
                                     </div>
                                 </div>
 
-                                {#if getConfigType(key) === 'select' && getFieldOptions(key).length > 0}
+                                {#if getConfigType(key) === FieldType.SELECT && getFieldOptions(key).length > 0}
                                     <div class="field-options-preview">
                                         <div class="field-options-title">已有选项:</div>
                                         <div class="field-options-list">

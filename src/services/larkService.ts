@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { LarkConfig } from '../types';
-import { Logger } from '../utils/logger';
-import { ConfigManager } from '../conf/configManager';
+import { Logger } from '../utils';
+import { ConfigManager } from '../conf';
 
 export class LarkService {
     private config: LarkConfig;
@@ -88,32 +88,35 @@ export class LarkService {
             const workItemKeyList = workItemListResponse.data.data.map(item => item.type_key);
             this.logger.debug('获取到工作项类型:', workItemKeyList);
 
-            // 查询工作项
-            let issueInfo = null;
-            for (const workItemKey of workItemKeyList) {
-                try {
-                    const response = await axios.post(`${this.config.larkBaseUrl}/open_api/${this.config.spaceId}/work_item/${workItemKey}/query`, {
-                        work_item_ids: [issueKey],
-                    }, {
-                        headers,
-                    });
-
+            // 并行查询所有工作项类型
+            const promises = workItemKeyList.map(workItemKey => {
+                return axios.post(`${this.config.larkBaseUrl}/open_api/${this.config.spaceId}/work_item/${workItemKey}/query`, {
+                    work_item_ids: [issueKey],
+                }, {
+                    headers,
+                })
+                .then(response => {
                     if (response.data && response.data.data && response.data.data.length > 0) {
-                        issueInfo = response.data.data[0];
-                        this.logger.debug('找到飞书工作项:', issueInfo);
-                        break;
+                        return response.data.data[0];
                     }
-                } catch (error) {
+                    return null;
+                })
+                .catch(error => {
                     this.logger.warn(`在类型 ${workItemKey} 中查询工作项失败:`, error);
-                    // 继续尝试下一个类型
-                }
-            }
+                    return null;
+                });
+            });
+
+            // 等待所有请求完成并获取第一个有效结果
+            const results = await Promise.all(promises);
+            const issueInfo = results.find(result => result !== null);
 
             if (!issueInfo) {
                 this.logger.warn('在所有工作项类型中均未找到该工作项:', issueKey);
                 return null;
             }
 
+            this.logger.debug('找到飞书工作项:', issueInfo);
             return issueInfo;
         } catch (error) {
             this.logger.error('获取飞书工作项失败:', error);

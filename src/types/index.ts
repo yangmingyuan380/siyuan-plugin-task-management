@@ -29,4 +29,14 @@ export interface Config {
     jiraConfig: JiraConfig;
     larkConfig: LarkConfig;
     logLevel: string; // 日志级别
+}
+
+/**
+ * 字段类型枚举
+ */
+export enum FieldType {
+    TEXT = 'text',
+    DATE = 'date',
+    SELECT = 'select',
+    URL = 'url'
 } 
