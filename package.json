@@ -1,6 +1,6 @@
 {
   "name": "siyuan-plugin-task-management",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "SiYuan task management plugin with JIRA and Lark/Feishu integration to sync project tasks with database cells.",
   "repository": "https://github.com/yangmingyuan380/siyuan-plugin-task-management",
